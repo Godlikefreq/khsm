@@ -31,7 +31,7 @@ class GamesController < ApplicationController
     rescue ActiveRecord::RecordInvalid, ActiveRecord::RecordNotSaved => ex # если ошибка создания игры
       Rails.logger.error("Error creating game for user #{current_user.id}, msg = #{ex}. #{ex.backtrace}")
       # отправляемся назад с алертом
-      redirect_to :back, alert: I18n.t('controllers.games.game_not_created')
+      redirect_back fallback_location: root_path, alert: I18n.t('controllers.games.game_not_created')
     end
   end
 
