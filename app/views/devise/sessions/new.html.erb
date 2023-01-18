@@ -1,0 +1,39 @@
+<div class="row d-flex justify-content-center">
+
+  <h2>Войти</h2>
+
+  <%= form_for(resource, as: resource_name, url: session_path(resource_name), data: { turbo: false }) do |f| %>
+    <div class="col-sm-3 mt-3">
+      <%= f.label :email, class: "col-sm-1 col-form-label" %>
+      <div class="input-group">
+        <div class="input-group-text"><i class="bi bi-mailbox"></i></div>
+        <%= f.email_field :email, autofocus: true, autocomplete: "email", class: "form-control",
+                          placeholder: "example@example.com" %>
+      </div>
+    </div>
+
+    <div class="col-sm-3 mt-1">
+      <%= f.label :password, class: "col-sm-2 col-form-label" %>
+      <div class="input-group">
+        <div class="input-group-text"><i class="bi bi-key-fill"></i></div>
+        <%= f.password_field :password, autocomplete: "current-password", class: "form-control",
+                             placeholder: "******" %>
+      </div>
+    </div>
+
+    <% if devise_mapping.rememberable? %>
+      <div class="col-sm-3 mt-1">
+        <%= f.check_box :remember_me %>
+        <%= f.label :remember_me %>
+      </div>
+    <% end %>
+
+    <div class="mt-2">
+      <%= f.submit t("link.log_in"), class: "btn btn-primary" %>
+    </div>
+  <% end %>
+
+  <div class="mt-2">
+    <%= render "devise/shared/links" %>
+  </div>
+</div>

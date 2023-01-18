@@ -57,4 +57,12 @@ Rails.application.configure do
 
   # Annotate rendered view with file names.
   # config.action_view.annotate_rendered_view_with_filenames = true
+
+  # Настройки для капибары и ланчи, чтобы в открываемых с помощью
+  # save_and_open_page страницах были все нужные стили
+  # Внимание! Нужно поднять сервер на 3000-м порте.
+  config.serve_static_files = true
+  config.assets.debug = true
+  config.asset_host   = 'http://localhost:3000'
+  config.static_cache_control = 'public, max-age=3600'
 end

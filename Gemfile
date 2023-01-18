@@ -7,7 +7,10 @@ gem "devise"
 gem "devise-i18n"
 gem "font-awesome-rails"
 gem "rails", "~> 7.0.4"
+gem 'rails-i18n'
 gem "rails_admin"
+gem "mailjet"
+gem "dotenv-rails"
 gem "sprockets-rails"
 gem "puma", "~> 5.0"
 gem "jsbundling-rails"
@@ -22,13 +25,16 @@ group :development, :test do
   gem "rspec-rails"
   gem "factory_bot_rails"
   gem "shoulda-matchers"
-  gem "capybara"
-  gem "launchy"
   gem "pg", "~> 1.1"
 end
 
 group :development do
   gem "web-console"
+end
+
+group :test do
+  gem "capybara"
+  gem "launchy"
 end
 
 group :production do
