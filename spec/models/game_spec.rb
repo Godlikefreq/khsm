@@ -13,6 +13,8 @@ RSpec.describe Game, type: :model do
   # игра с прописанными игровыми вопросами
   let(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user) }
 
+  let(:q) { game_w_questions.current_game_question }
+
   # Группа тестов на работу фабрики создания новых игр
   context 'Game Factory' do
     it 'Game.create_game! new correct game' do
@@ -38,7 +40,6 @@ RSpec.describe Game, type: :model do
     end
   end
 
-
   # тесты на основную игровую логику
   context 'game mechanics' do
 
@@ -46,7 +47,6 @@ RSpec.describe Game, type: :model do
     it 'answer correct continues game' do
       # текущий уровень игры и статус
       level = game_w_questions.current_level
-      q = game_w_questions.current_game_question
       expect(game_w_questions.status).to eq(:in_progress)
 
       game_w_questions.answer_current_question!(q.correct_answer_key)
@@ -61,55 +61,117 @@ RSpec.describe Game, type: :model do
       expect(game_w_questions.finished?).to be_falsey
     end
 
-    it 'take_money! finishes game' do
-      q = game_w_questions.current_game_question
-      game_w_questions.answer_current_question!(q.correct_answer_key)
+    describe '#take_money!' do
+      it 'it finishes game' do
+        game_w_questions.answer_current_question!(q.correct_answer_key)
 
-      game_w_questions.take_money!
+        game_w_questions.take_money!
 
-      prize = game_w_questions.prize
-      expect(prize).to be > 0
+        prize = game_w_questions.prize
+        expect(prize).to be > 0
 
-      expect(game_w_questions.status).to eq :money
-      expect(game_w_questions.finished?).to be_truthy
-      expect(user.balance).to eq prize
+        expect(game_w_questions.status).to eq :money
+        expect(game_w_questions.finished?).to be_truthy
+        expect(user.balance).to eq prize
+      end
     end
 
-    it '.current_game_question returns current question' do
-      expect(game_w_questions.current_game_question).to eq(game_w_questions.game_questions[0])
+    describe '#current_game_question' do
+      it 'returns current question' do
+        expect(game_w_questions.current_game_question).to eq(game_w_questions.game_questions[0])
+      end
     end
 
-    it '.previous_level' do
-      game_w_questions.answer_current_question!(game_w_questions.current_game_question.correct_answer_key)
+    describe '#previous_level' do
+      before do
+        game_w_questions.answer_current_question!(q.correct_answer_key)
+      end
 
-      expect(game_w_questions.previous_level).to be(0)
+      it 'matches previous level' do
+        expect(game_w_questions.previous_level).to be(0)
+      end
+    end
+
+    describe '#answer_current_question!' do
+      context 'game is not finished and answer is correct' do
+        before do
+          game_w_questions.answer_current_question!(q.correct_answer_key)
+        end
+
+        it 'raises current level' do
+          expect(game_w_questions.current_level).to be > game_w_questions.previous_level
+        end
+      end
+
+      context 'given wrong answer' do
+        before do
+          wrong_answer_key = "a"
+          game_w_questions.answer_current_question!(wrong_answer_key)
+          debugger
+        end
+
+        it 'finishes game with previous prize pool with fail status' do
+          expect(game_w_questions.finished?).to be true
+          expect(game_w_questions.prize).to be(0)
+          expect(game_w_questions.status).to eq(:fail)
+        end
+      end
+
+      context 'last question and answered correct' do
+        before do
+          game_w_questions.current_level = 14
+          game_w_questions.answer_current_question!(q.correct_answer_key)
+        end
+
+        it 'finishes game with max prize pool' do
+          expect(game_w_questions.prize).to eq(1000000)
+          expect(game_w_questions.finished?).to be true
+          expect(game_w_questions.status).to eq(:won)
+        end
+      end
+
+      context 'answer given after time out' do
+        before do
+          game_w_questions.created_at = 1.hour.ago
+          game_w_questions.current_level = 10
+          game_w_questions.answer_current_question!(q.correct_answer_key)
+        end
+
+        it 'ends game with last fire proof prize pool' do
+          expect(game_w_questions.finished?).to be true
+          expect(game_w_questions.prize).to eq(32000)
+          expect(game_w_questions.status).to eq(:timeout)
+        end
+      end
     end
   end
 
-  context '.status' do
-    before(:each) do
-      game_w_questions.finished_at = Time.now
-      expect(game_w_questions.finished?).to be_truthy
-    end
+  context 'game status' do
+    describe '.status' do
+      before(:each) do
+        game_w_questions.finished_at = Time.now
+        expect(game_w_questions.finished?).to be_truthy
+      end
 
-    it ':won' do
-      game_w_questions.current_level = Question::QUESTION_LEVELS.max + 1
-      expect(game_w_questions.status).to eq(:won)
-    end
+      it ':won' do
+        game_w_questions.current_level = Question::QUESTION_LEVELS.max + 1
+        expect(game_w_questions.status).to eq(:won)
+      end
 
-    it ':fail' do
-      game_w_questions.is_failed = true
-      expect(game_w_questions.status).to eq(:fail)
-    end
+      it ':fail' do
+        game_w_questions.is_failed = true
+        expect(game_w_questions.status).to eq(:fail)
+      end
 
-    it ':timeout' do
-      game_w_questions.created_at = 1.hour.ago
-      game_w_questions.is_failed = true
-      expect(game_w_questions.status).to eq(:timeout)
-    end
+      it ':timeout' do
+        game_w_questions.created_at = 1.hour.ago
+        game_w_questions.is_failed = true
+        expect(game_w_questions.status).to eq(:timeout)
+      end
 
-    it ':money' do
-      expect(game_w_questions.status).to eq(:money)
+      it ':money' do
+        expect(game_w_questions.status).to eq(:money)
+      end
     end
   end
 end

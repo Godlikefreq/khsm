@@ -13,25 +13,30 @@ RSpec.describe GameQuestion, type: :model do
   # группа тестов на игровое состояние объекта вопроса
   context 'game status' do
     # тест на правильную генерацию хэша с вариантами
-    it 'correct .variants' do
-      expect(game_question.variants).to eq({'a' => game_question.question.answer2,
-                                            'b' => game_question.question.answer1,
-                                            'c' => game_question.question.answer4,
-                                            'd' => game_question.question.answer3})
+    it 'correct #variants' do
+      expect(game_question.variants).to eq({ 'a' => game_question.question.answer2,
+                                             'b' => game_question.question.answer1,
+                                             'c' => game_question.question.answer4,
+                                             'd' => game_question.question.answer3 })
     end
 
-    it 'correct .answer_correct?' do
-      # именно под буквой b в тесте мы спрятали указатель на верный ответ
-      expect(game_question.answer_correct?('b')).to be_truthy
+    describe '#answer_correct?' do
+      it 'matches correct answer' do
+        expect(game_question.answer_correct?('b')).to be_truthy
+      end
     end
 
-    it 'correct .level & .text delegates' do
-      expect(game_question.text).to eq(game_question.question.text)
-      expect(game_question.level).to eq(game_question.question.level)
+    describe '#level & #text delegates' do
+      it 'matches current text and level' do
+        expect(game_question.text).to eq(game_question.question.text)
+        expect(game_question.level).to eq(game_question.question.level)
+      end
     end
 
-    it '.correct_answer_key' do
-      expect(game_question.correct_answer_key).to eq("b")
+    describe '#correct_answer_key' do
+      it 'matches correct answer key' do
+        expect(game_question.correct_answer_key).to eq("b")
+      end
     end
   end
 
