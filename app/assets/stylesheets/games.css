@@ -1,7 +1,50 @@
 .game-logo {
-  width: 120px;
+  width: 220px;
 }
 
 .game-help-used {
   opacity: 0.5;
+}
+
+body {
+  background-image: url('bg.jpg');
+  background-repeat: no-repeat;
+  background-size: 100%;
+}
+
+.alert-info {
+  background: rgba(255, 255, 255, 0.2);
+  border-width: 2px;
+  border-color: rgba(213, 235, 255, 1);
+  color: white;
+}
+
+.btn-default {
+  background: none;
+  border-width: 2px;
+  border-color: rgba(213, 235, 255, 0.8);
+  color: white;
+}
+
+.btn-default:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-width: 2px;
+  border-color: rgba(213, 235, 255, 1);
+  color: white;
+}
+
+.btn-default:active, .btn-default:active:hover {
+  background-color: rgb(228, 169, 65);
+  color: #000;
+  border-color: rgba(213, 235, 255, 1)
+}
+
+.btn-default_state_right {
+  background-color: rgb(31, 215, 85);
+  color: #000;
+}
+
+.btn-default:active .variant, .btn-default:active:hover .variant,
+.btn-default_state_right .variant {
+  color: #fff;
 }

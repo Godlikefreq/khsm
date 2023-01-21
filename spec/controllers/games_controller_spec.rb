@@ -22,7 +22,7 @@ RSpec.describe GamesController, type: :controller do
     # из экшена show анона посылаем
     it 'kick from #show' do
       # вызываем экшен
-      get :show, id: game_w_questions.id
+      get :show, params: { id: game_w_questions.id }
       # проверяем ответ
       expect(response.status).not_to eq(200) # статус не 200 ОК
       expect(response).to redirect_to(new_user_session_path) # devise должен отправить на логин
@@ -53,7 +53,7 @@ RSpec.describe GamesController, type: :controller do
 
     # юзер видит свою игру
     it '#show game' do
-      get :show, id: game_w_questions.id
+      get :show, params: { id: game_w_questions.id }
       game = assigns(:game) # вытаскиваем из контроллера поле @game
       expect(game.finished?).to be_falsey
       expect(game.user).to eq(user)
@@ -65,13 +65,13 @@ RSpec.describe GamesController, type: :controller do
     # юзер отвечает на игру корректно - игра продолжается
     it 'answers correct' do
       # передаем параметр params[:letter]
-      put :answer, id: game_w_questions.id, letter: game_w_questions.current_game_question.correct_answer_key
+      put :answer, params: { id: game_w_questions.id, letter: game_w_questions.current_game_question.correct_answer_key }
       game = assigns(:game)
 
       expect(game.finished?).to be_falsey
       expect(game.current_level).to be > 0
       expect(response).to redirect_to(game_path(game))
-      expect(flash.empty?).to be_truthy # удачный ответ не заполняет flash
+      expect(flash[:success]).to be
     end
 
     # тест на отработку "помощи зала"
@@ -81,7 +81,7 @@ RSpec.describe GamesController, type: :controller do
       expect(game_w_questions.audience_help_used).to be_falsey
 
       # фигачим запрос в контроллен с нужным типом
-      put :help, id: game_w_questions.id, help_type: :audience_help
+      put :help, params: { id: game_w_questions.id, help_type: :audience_help }
       game = assigns(:game)
 
       # проверяем, что игра не закончилась, что флажок установился, и подсказка записалась

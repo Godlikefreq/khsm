@@ -1,7 +1,7 @@
 <div class="row">
-  <div class="col-sm-9 col-sm-push-3">
+  <div class="col-sm-9">
     <div class="text-center">
-      <%= image_tag asset_path('logo.png'), class: 'game-logo buffer-bottom' %>
+      <%= image_tag asset_path('logo.png'), class: 'game-logo border-0 mb-4' %>
     </div>
 
     <div class="game-question">
@@ -15,7 +15,7 @@
     </div>
   </div>
 
-  <div class="col-sm-3 col-sm-pull-9">
+  <div class="col-sm-3 mt-2 text-center">
     <ul class="list-group list-group-prizes game-prizes">
       <% Game::PRIZES.reverse.each_with_index do |prize, index| %>
         <li class="list-group-item text-center <%= 'active' if (14 - index == @game.current_level) %>">
@@ -25,6 +25,7 @@
       <% end %>
     </ul>
 
-    <%= link_to 'Забрать выигрыш', take_money_game_path(@game), method: :put, class: 'btn btn-info btn-block' %>
+    <%= link_to 'Забрать выигрыш', take_money_game_path(@game), data: { turbo_method: :put },
+                class: 'btn btn-outline-success mt-2' %>
   </div>
 </div>

@@ -37,9 +37,14 @@ class GameQuestion < ActiveRecord::Base
 
 
   # ----- Основные методы для доступа к данным в шаблонах и контроллерах -----------
+  def apply_help!(help_type)
+    case help_type.to_sym
+    when :fifty_fifty then add_fifty_fifty
+    when :audience_help then add_audience_help
+    when :friend_call then add_friend_call
+    end
+  end
 
-  # Возвращает хэш, отсортированный по ключам:
-  # {'a' => 'Текст ответа Х', 'b' => 'Текст ответа У', ... }
   def variants
     {
       'a' => question.read_attribute("answer#{a}"),

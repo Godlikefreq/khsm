@@ -34,7 +34,7 @@ RSpec.feature 'USER creates a game', type: :feature do
     click_link 'Новая игра'
 
     # Ожидаем, что попадем на нужный url
-    expect(page).to have_current_path '/games/1'
+    expect(page).to have_current_path "/games/#{user.games.ids.join('')}"
 
     # Ожидаем, что на экране вопрос игры (самый простой)
     expect(page).to have_content 'Когда была куликовская битва номер 0?'

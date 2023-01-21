@@ -3,7 +3,7 @@
 <div class="game-help-info">
   <%# Если в хэше help есть ключь friend_call или audience_help, нам есть что показать пользователю %>
   <% if help.key?(:friend_call) || help.key?(:audience_help) %>
-    <div class="row buffer-top-lg">
+    <div class="row mt-4">
       <div class="col-xs-12">
         <%# Выводим информацию о подсказке "Звонок другу" %>
         <% if help.key?(:friend_call) %>
@@ -13,11 +13,11 @@
         <% end %>
 
         <% if help.key?(:audience_help) %>
-          <p>Зрители считают: </p>
+          <p class="text-white">Зрители считают: </p>
           <%# Выводим распределение голосов зрителей %>
           <% help[:audience_help].sort.map do |key, value| %>
             <div class="progress">
-              <div class="progress-bar progress-bar-danger" style="width: <%= value %>%;">
+              <div class="progress-bar bg-danger" style="width: <%= value %>%;">
                 <%= key.upcase %>: <%= value %>%
               </div>
             </div>
@@ -29,21 +29,20 @@
 </div>
 
 <%# Выводим подсказки, которые можно использовать во время игры %>
-<div class="game-help row buffer-top">
-  <div class="col-sm-4">
+<div class="text-center">
+  <div class="col-6 mt-4 btn-group">
     <%# Для каждой подсказки с помощью объекта game проверяем, не была ли подсказка использована ранее %>
     <% unless game.fifty_fifty_used? %>
-      <%= link_to '50/50', help_game_path(game, help_type: :fifty_fifty), method: :put, class: 'btn btn-default btn-block btn-help' %>
+      <%= link_to '50/50', help_game_path(game, help_type: :fifty_fifty), data: { turbo_method: :put },
+                  class: 'btn btn-outline-warning' %>
     <% end %>
-  </div>
-  <div class="col-sm-4">
     <% unless game.friend_call_used? %>
-      <%= link_to fa_icon('phone'), help_game_path(game, help_type: :friend_call), method: :put, class: 'btn btn-default btn-block btn-help' %>
+      <%= link_to fa_icon('phone'), help_game_path(game, help_type: :friend_call), data: { turbo_method: :put },
+                  class: 'btn btn-outline-warning' %>
     <% end %>
-  </div>
-  <div class="col-sm-4">
     <% unless game.audience_help_used? %>
-      <%= link_to fa_icon('users'), help_game_path(game, help_type: :audience_help), method: :put, class: 'btn btn-default btn-block btn-help' %>
+      <%= link_to fa_icon('users'), help_game_path(game, help_type: :audience_help), data: { turbo_method: :put },
+                  class: 'btn btn-outline-warning' %>
     <% end %>
   </div>
 </div>

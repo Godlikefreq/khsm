@@ -55,8 +55,13 @@ class GamesController < ApplicationController
       format.html do
         if @answer_is_correct && !@game.finished?
           redirect_to game_path(@game)
+          flash[:success] = I18n.t('controllers.games.good_answer')
         else
           redirect_to user_path(current_user)
+          flash[:success] = I18n.t(
+            'controllers.games.game_finished',
+            prize: view_context.number_to_currency(@game.prize)
+          )
         end
       end
 
@@ -70,8 +75,8 @@ class GamesController < ApplicationController
   # вызывается из вьюхи без параметров
   def take_money
     @game.take_money!
-    redirect_to user_path(current_user),
-                flash: {warning: I18n.t('controllers.games.game_finished', prize: view_context.number_to_currency(@game.prize))}
+    redirect_to user_path(current_user)
+                flash[:success] = I18n.t('controllers.games.game_finished', prize: view_context.number_to_currency(@game.prize))
   end
 
   # запрашиваем помощь в текущем вопросе
@@ -79,7 +84,7 @@ class GamesController < ApplicationController
   def help
     # используем помощь в игре и по результату задаем сообщение юзеру
     msg = if @game.use_help(params[:help_type].to_sym)
-            {flash: {info: I18n.t('controllers.games.help_used')}}
+            {flash: {success: I18n.t('controllers.games.help_used')}}
           else
             {alert: I18n.t('controllers.games.help_not_used')}
           end
