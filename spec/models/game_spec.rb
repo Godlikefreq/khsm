@@ -107,7 +107,6 @@ RSpec.describe Game, type: :model do
         before do
           wrong_answer_key = "a"
           game_w_questions.answer_current_question!(wrong_answer_key)
-          debugger
         end
 
         it 'finishes game with previous prize pool with fail status' do
