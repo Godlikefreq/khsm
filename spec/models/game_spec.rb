@@ -93,52 +93,76 @@ RSpec.describe Game, type: :model do
     end
 
     describe '#answer_current_question!' do
-      context 'game is not finished and answer is correct' do
-        before do
-          game_w_questions.answer_current_question!(q.correct_answer_key)
+      let(:correct_key) {q.correct_answer_key}
+      let(:wrong_key) {"a"}
+
+      context 'question is not last and answer is correct' do
+        before(:each) do
+          game_w_questions.answer_current_question!(correct_key)
         end
 
         it 'raises current level' do
           expect(game_w_questions.current_level).to be > game_w_questions.previous_level
         end
+
+        it 'continues the game' do
+          expect(game_w_questions.status).to eq(:in_progress)
+        end
       end
 
       context 'given wrong answer' do
-        before do
-          wrong_answer_key = "a"
-          game_w_questions.answer_current_question!(wrong_answer_key)
+        before(:each) do
+          game_w_questions.answer_current_question!(wrong_key)
         end
 
-        it 'finishes game with previous prize pool with fail status' do
+        it 'finished game' do
           expect(game_w_questions.finished?).to be true
+        end
+
+        it 'finished with previous prize pool' do
           expect(game_w_questions.prize).to be(0)
+        end
+
+        it 'finished with fail status' do
           expect(game_w_questions.status).to eq(:fail)
         end
       end
 
       context 'last question and answered correct' do
-        before do
+        before(:each) do
           game_w_questions.current_level = 14
-          game_w_questions.answer_current_question!(q.correct_answer_key)
+          game_w_questions.answer_current_question!(correct_key)
         end
 
-        it 'finishes game with max prize pool' do
+        it 'max prize pool' do
           expect(game_w_questions.prize).to eq(1000000)
+        end
+
+        it 'finished game' do
           expect(game_w_questions.finished?).to be true
+        end
+
+        it 'finished with status "won"' do
           expect(game_w_questions.status).to eq(:won)
         end
       end
 
       context 'answer given after time out' do
-        before do
-          game_w_questions.created_at = 1.hour.ago
+        before(:each) do
           game_w_questions.current_level = 10
-          game_w_questions.answer_current_question!(q.correct_answer_key)
+          game_w_questions.created_at = 1.hour.ago
+          game_w_questions.answer_current_question!(correct_key)
         end
 
-        it 'ends game with last fire proof prize pool' do
+        it 'ends game' do
           expect(game_w_questions.finished?).to be true
+        end
+
+        it 'saves last fire proof prize pool' do
           expect(game_w_questions.prize).to eq(32000)
+        end
+
+        it 'finished game with status "timeout"' do
           expect(game_w_questions.status).to eq(:timeout)
         end
       end
