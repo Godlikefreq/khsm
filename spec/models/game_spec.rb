@@ -108,6 +108,10 @@ RSpec.describe Game, type: :model do
         it 'continues the game' do
           expect(game_w_questions.status).to eq(:in_progress)
         end
+
+        it 'game is not finished' do
+          expect(game_w_questions.finished?).to be false
+        end
       end
 
       context 'given wrong answer' do
