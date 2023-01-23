@@ -16,5 +16,14 @@ module KhsmNew
     config.i18n.fallbacks = [:en]
 
     config.time_zone = 'Moscow'
+
+    config.generators do |g|
+      g.test_framework :rspec,
+                       request_specs: true,
+                       view_specs: true,
+                       routing_specs: true,
+                       helper_specs: true,
+                       controller_specs: true
+    end
   end
 end
