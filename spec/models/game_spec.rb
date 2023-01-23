@@ -93,16 +93,14 @@ RSpec.describe Game, type: :model do
     end
 
     describe '#answer_current_question!' do
-      let(:correct_key) {q.correct_answer_key}
-      let(:wrong_key) {"a"}
+      before { game_w_questions.answer_current_question!(answer_key) }
 
-      context 'question is not last and answer is correct' do
-        before(:each) do
-          game_w_questions.answer_current_question!(correct_key)
-        end
+      context 'when answer is correct' do
+        let!(:answer_key) { q.correct_answer_key }
+        let!(:level) { Question::QUESTION_LEVELS.first }
 
         it 'raises current level' do
-          expect(game_w_questions.current_level).to be > game_w_questions.previous_level
+          expect(game_w_questions.current_level).to be(1)
         end
 
         it 'continues the game' do
@@ -112,12 +110,44 @@ RSpec.describe Game, type: :model do
         it 'game is not finished' do
           expect(game_w_questions.finished?).to be false
         end
+
+        context 'and question is last' do
+          let!(:level) { Question::QUESTION_LEVELS.last }
+          let!(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user, current_level: level) }
+
+          it 'max prize pool' do
+            expect(game_w_questions.prize).to eq(1000000)
+          end
+
+          it 'finished game' do
+            expect(game_w_questions.finished?).to be true
+          end
+
+          it 'finished with status "won"' do
+            expect(game_w_questions.status).to eq(:won)
+          end
+        end
+
+        context 'and time is over' do
+          let!(:level) { Question::QUESTION_LEVELS.first(11).last }
+          let!(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user, created_at: 1.hour.ago, current_level: level) }
+
+          it 'ends game' do
+            expect(game_w_questions.finished?).to be true
+          end
+
+          it 'saves last fire proof prize pool' do
+            expect(game_w_questions.prize).to eq(32000)
+          end
+
+          it 'finished game with status "timeout"' do
+            expect(game_w_questions.status).to eq(:timeout)
+          end
+        end
       end
 
       context 'given wrong answer' do
-        before(:each) do
-          game_w_questions.answer_current_question!(wrong_key)
-        end
+        let!(:answer_key) { %w[a b c d].grep_v(q.correct_answer_key).sample }
 
         it 'finished game' do
           expect(game_w_questions.finished?).to be true
@@ -131,51 +161,12 @@ RSpec.describe Game, type: :model do
           expect(game_w_questions.status).to eq(:fail)
         end
       end
-
-      context 'last question and answered correct' do
-        before(:each) do
-          game_w_questions.current_level = 14
-          game_w_questions.answer_current_question!(correct_key)
-        end
-
-        it 'max prize pool' do
-          expect(game_w_questions.prize).to eq(1000000)
-        end
-
-        it 'finished game' do
-          expect(game_w_questions.finished?).to be true
-        end
-
-        it 'finished with status "won"' do
-          expect(game_w_questions.status).to eq(:won)
-        end
-      end
-
-      context 'answer given after time out' do
-        before(:each) do
-          game_w_questions.current_level = 10
-          game_w_questions.created_at = 1.hour.ago
-          game_w_questions.answer_current_question!(correct_key)
-        end
-
-        it 'ends game' do
-          expect(game_w_questions.finished?).to be true
-        end
-
-        it 'saves last fire proof prize pool' do
-          expect(game_w_questions.prize).to eq(32000)
-        end
-
-        it 'finished game with status "timeout"' do
-          expect(game_w_questions.status).to eq(:timeout)
-        end
-      end
     end
   end
 
   context 'game status' do
     describe '.status' do
-      before(:each) do
+      before do
         game_w_questions.finished_at = Time.now
         expect(game_w_questions.finished?).to be_truthy
       end
