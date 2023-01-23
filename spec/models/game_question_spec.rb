@@ -22,19 +22,22 @@ RSpec.describe GameQuestion, type: :model do
 
     describe '#answer_correct?' do
       it 'matches correct answer' do
-        expect(game_question.answer_correct?('b')).to be_truthy
+        expect(game_question.answer_correct?('b')).to be true
       end
     end
 
     describe '#level & #text delegates' do
-      it 'matches current text and level' do
+      it 'matches current text' do
         expect(game_question.text).to eq(game_question.question.text)
+      end
+
+      it 'matches current level' do
         expect(game_question.level).to eq(game_question.question.level)
       end
     end
 
     describe '#correct_answer_key' do
-      it 'matches correct answer key' do
+      it 'returns correct answer key' do
         expect(game_question.correct_answer_key).to eq("b")
       end
     end
