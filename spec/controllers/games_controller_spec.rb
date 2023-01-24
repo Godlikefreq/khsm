@@ -91,5 +91,58 @@ RSpec.describe GamesController, type: :controller do
       expect(game.current_game_question.help_hash[:audience_help].keys).to contain_exactly('a', 'b', 'c', 'd')
       expect(response).to redirect_to(game_path(game))
     end
+
+    context 'user cannot view other user\'s game' do
+      let!(:game_w_questions) { FactoryBot.create(:game_with_questions) }
+
+      it 'returns bad response' do
+        get :show, params: { id: game_w_questions.id }
+        expect(response.status).not_to eq(200)
+      end
+
+      it 'redirects to home page' do
+        get :show, params: { id: game_w_questions.id }
+        expect(response).to redirect_to(root_path)
+      end
+
+      it 'renders flash message' do
+        get :show, params: { id: game_w_questions.id }
+        expect(flash[:alert]).to be
+      end
+    end
+
+    context 'user takes money before game\'s ending' do
+      let!(:level) { Question::QUESTION_LEVELS.first(3).last }
+      let!(:game_w_questions) { FactoryBot.create(:game_with_questions, current_level: level, user: user) }
+      #let!(:game) { assigns(:game) }
+
+      it 'finished game' do
+        put :take_money, params: { id: game_w_questions.id }
+        game = assigns(:game)
+        expect(game.finished?).to be_truthy
+      end
+
+      it 'assigns current prize' do
+        put :take_money, params: { id: game_w_questions.id }
+        game = assigns(:game)
+        expect(game.prize).to eq(200)
+      end
+
+      it 'updates user balance' do
+        put :take_money, params: { id: game_w_questions.id }
+        user.reload
+        expect(user.balance).to eq(200)
+      end
+
+      it 'redirects to user_path' do
+        put :take_money, params: { id: game_w_questions.id }
+        expect(response).to redirect_to(user_path(user))
+      end
+
+      it 'renders flash message' do
+        put :take_money, params: { id: game_w_questions.id }
+        expect(flash[:success]).to be
+      end
+    end
   end
 end
