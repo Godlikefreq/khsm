@@ -93,43 +93,89 @@ RSpec.describe GamesController, type: :controller do
     before { sign_in user }
 
     describe '#create' do
-      before { generate_questions(15) }
-      before { post :create }
+      context 'first game' do
+        before { generate_questions(15) }
+        before { post :create }
 
-      it 'game is not finished' do
-        expect(game.finished?).to be false
+        it 'game is not finished' do
+          expect(game.finished?).to be false
+        end
+
+        it 'assigns user to game' do
+          expect(game.user).to eq(user)
+        end
+
+        it 'redirects to game path' do
+          expect(response).to redirect_to(game_path(game))
+        end
+
+        it 'renders flash notice' do
+          expect(flash[:notice]).to be
+        end
       end
 
-      it 'assigns user to game' do
-        expect(game.user).to eq(user)
-      end
+      context 'second game with first game not finished' do
+        let!(:existing_game) { game_w_questions }
+        before { post :create }
 
-      it 'redirects to game path' do
-        expect(response).to redirect_to(game_path(game))
-      end
+        it 'first game is in progress' do
+          expect(existing_game.status).to eq(:in_progress)
+        end
 
-      it 'renders flash notice' do
-        expect(flash[:notice]).to be
+        it 'doesn\'t create new game' do
+          expect { post :create }.to change(Game, :count).by(0)
+        end
+
+        it 'doesn\'t assing game to variable' do
+          expect(game).to be nil
+        end
+
+        it 'redirects to game that already in progress' do
+          expect(response).to redirect_to(game_path(existing_game))
+        end
+
+        it 'renders flash alert' do
+          expect(flash[:alert]).to be
+        end
       end
     end
 
     describe '#show' do
-      before { get :show, params: { id: game_w_questions.id } }
+      context 'user\'s own game' do
+        before { get :show, params: { id: game_w_questions.id } }
 
-      it 'game is not finished' do
-        expect(game.finished?).to be false
+        it 'game is not finished' do
+          expect(game.finished?).to be false
+        end
+
+        it 'assigns user to game' do
+          expect(game.user).to eq(user)
+        end
+
+        it 'respond with good status' do
+          expect(response.status).to eq(200)
+        end
+
+        it 'renders show' do
+          expect(response).to render_template('show')
+        end
       end
 
-      it 'assigns user to game' do
-        expect(game.user).to eq(user)
-      end
+      context 'another user\'s game' do
+        let!(:game_w_questions) { FactoryBot.create(:game_with_questions) }
+        before { get :show, params: { id: game_w_questions.id } }
 
-      it 'respond with good status' do
-        expect(response.status).to eq(200)
-      end
+        it 'returns bad response' do
+          expect(response.status).not_to eq(200)
+        end
 
-      it 'renders show' do
-        expect(response).to render_template('show')
+        it 'redirects to home page' do
+          expect(response).to redirect_to(root_path)
+        end
+
+        it 'renders flash message' do
+          expect(flash[:alert]).to be
+        end
       end
     end
 
@@ -200,24 +246,7 @@ RSpec.describe GamesController, type: :controller do
       end
     end
 
-    context 'user cannot view other user\'s game' do
-      let!(:game_w_questions) { FactoryBot.create(:game_with_questions) }
-      before { get :show, params: { id: game_w_questions.id } }
-
-      it 'returns bad response' do
-        expect(response.status).not_to eq(200)
-      end
-
-      it 'redirects to home page' do
-        expect(response).to redirect_to(root_path)
-      end
-
-      it 'renders flash message' do
-        expect(flash[:alert]).to be
-      end
-    end
-
-    context 'user takes money before game\'s ending' do
+    describe '#take_money' do
       let!(:level) { Question::QUESTION_LEVELS.first(3).last }
       let!(:game_w_questions) { FactoryBot.create(:game_with_questions, current_level: level, user: user) }
       before { put :take_money, params: { id: game_w_questions.id } }
@@ -241,31 +270,6 @@ RSpec.describe GamesController, type: :controller do
 
       it 'renders flash message' do
         expect(flash[:success]).to be
-      end
-    end
-
-    context 'user cannot create second game if first is in progress' do
-      let!(:existing_game) { game_w_questions }
-      before { post :create }
-
-      it 'first game is in progress' do
-        expect(existing_game.status).to eq(:in_progress)
-      end
-
-      it 'doesn\'t create new game' do
-        expect { post :create }.to change(Game, :count).by(0)
-      end
-
-      it 'doesn\'t assing game to variable' do
-        expect(game).to be nil
-      end
-
-      it 'redirects to game that already in progress' do
-        expect(response).to redirect_to(game_path(existing_game))
-      end
-
-      it 'renders flash alert' do
-        expect(flash[:alert]).to be
       end
     end
   end
