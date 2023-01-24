@@ -28,12 +28,14 @@ RSpec.describe GamesController, type: :controller do
       expect(response).to redirect_to(new_user_session_path) # devise должен отправить на логин
       expect(flash[:alert]).to be # во flash должен быть прописана ошибка
     end
+
+    it 'cannot call show '
   end
 
   # группа тестов на экшены контроллера, доступных залогиненным юзерам
   context 'Usual user' do
     # перед каждым тестом в группе
-    before(:each) { sign_in user } # логиним юзера user с помощью спец. Devise метода sign_in
+    before { sign_in user } # логиним юзера user с помощью спец. Devise метода sign_in
 
     # юзер может создать новую игру
     it 'creates game' do
@@ -114,7 +116,6 @@ RSpec.describe GamesController, type: :controller do
     context 'user takes money before game\'s ending' do
       let!(:level) { Question::QUESTION_LEVELS.first(3).last }
       let!(:game_w_questions) { FactoryBot.create(:game_with_questions, current_level: level, user: user) }
-      #let!(:game) { assigns(:game) }
 
       it 'finished game' do
         put :take_money, params: { id: game_w_questions.id }
@@ -142,6 +143,32 @@ RSpec.describe GamesController, type: :controller do
       it 'renders flash message' do
         put :take_money, params: { id: game_w_questions.id }
         expect(flash[:success]).to be
+      end
+    end
+
+    context 'user cannot create second game if first is in progress' do
+      let!(:existing_game) { game_w_questions }
+      before { post :create }
+
+      it 'first game is in progress' do
+        expect(existing_game.status).to eq(:in_progress)
+      end
+
+      it 'doesn\'t create new game' do
+        expect { post :create }.to change(Game, :count).by(0)
+      end
+
+      it 'doesn\'t assing game to variable' do
+        game = assigns(:game)
+        expect(game).to be nil
+      end
+
+      it 'redirects to game that already in progress' do
+        expect(response).to redirect_to(game_path(existing_game))
+      end
+
+      it 'renders flas alert' do
+        expect(flash[:alert]).to be
       end
     end
   end
