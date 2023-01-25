@@ -1,5 +1,5 @@
 require 'rails_helper'
-require 'support/my_spec_helper' # наш собственный класс с вспомогательными методами
+require 'support/my_spec_helper'
 
 RSpec.describe GamesController, type: :controller do
   let(:user) { FactoryBot.create(:user) }
@@ -7,8 +7,8 @@ RSpec.describe GamesController, type: :controller do
   let(:game_w_questions) { FactoryBot.create(:game_with_questions, user: user) }
   let(:game) { assigns(:game) }
 
-  context 'Anon' do
-    describe '#show' do
+  describe '#show' do
+    context 'when anon' do
       before { get :show, params: { id: game_w_questions.id } }
 
       it 'returns bad response' do
@@ -24,7 +24,50 @@ RSpec.describe GamesController, type: :controller do
       end
     end
 
-    describe '#create' do
+    context 'when signed_in' do
+      before { sign_in user }
+
+      context 'and viewing user\'s own game' do
+        before { get :show, params: { id: game_w_questions.id } }
+
+        it 'game is not finished' do
+          expect(game.finished?).to be false
+        end
+
+        it 'assigns user to game' do
+          expect(game.user).to eq(user)
+        end
+
+        it 'respond with good status' do
+          expect(response.status).to eq(200)
+        end
+
+        it 'renders show' do
+          expect(response).to render_template('show')
+        end
+      end
+
+      context 'and viewing another user\'s game' do
+        let!(:game_w_questions) { FactoryBot.create(:game_with_questions) }
+        before { get :show, params: { id: game_w_questions.id } }
+
+        it 'returns bad response' do
+          expect(response.status).not_to eq(200)
+        end
+
+        it 'redirects to home page' do
+          expect(response).to redirect_to(root_path)
+        end
+
+        it 'renders flash message' do
+          expect(flash[:alert]).to be
+        end
+      end
+    end
+  end
+
+  describe '#create' do
+    context 'when anon' do
       before { post :create }
 
       it 'returns bad response' do
@@ -40,60 +83,10 @@ RSpec.describe GamesController, type: :controller do
       end
     end
 
-    describe '#answer' do
-      before { put :answer, params: { id: game_w_questions.id } }
+    context 'when signed_in' do
+      before { sign_in user }
 
-      it 'returns bad response' do
-        expect(response.status).not_to eq(200)
-      end
-
-      it 'redirects to registration' do
-        expect(response).to redirect_to(new_user_session_path)
-      end
-
-      it 'renders flash alert message' do
-        expect(flash[:alert]).to be
-      end
-    end
-
-    describe '#take_money' do
-      before { put :take_money, params: { id: game_w_questions.id } }
-
-      it 'returns bad response' do
-        expect(response.status).not_to eq(200)
-      end
-
-      it 'redirects to registration' do
-        expect(response).to redirect_to(new_user_session_path)
-      end
-
-      it 'renders flash alert message' do
-        expect(flash[:alert]).to be
-      end
-    end
-
-    describe 'help' do
-      before { put :help, params: { id: game_w_questions.id, help_type: :fifty_fifty } }
-
-      it 'returns bad response' do
-        expect(response.status).not_to eq(200)
-      end
-
-      it 'redirects to registration' do
-        expect(response).to redirect_to(new_user_session_path)
-      end
-
-      it 'renders flash alert message' do
-        expect(flash[:alert]).to be
-      end
-    end
-  end
-
-  context 'Usual user' do
-    before { sign_in user }
-
-    describe '#create' do
-      context 'first game' do
+      context 'and creating first game' do
         before { generate_questions(15) }
         before { post :create }
 
@@ -114,7 +107,7 @@ RSpec.describe GamesController, type: :controller do
         end
       end
 
-      context 'second game with first game not finished' do
+      context 'and creating second game with first game not finished' do
         let!(:existing_game) { game_w_questions }
         before { post :create }
 
@@ -139,48 +132,29 @@ RSpec.describe GamesController, type: :controller do
         end
       end
     end
+  end
 
-    describe '#show' do
-      context 'user\'s own game' do
-        before { get :show, params: { id: game_w_questions.id } }
+  describe '#answer' do
+    context 'when anon' do
+      before { put :answer, params: { id: game_w_questions.id } }
 
-        it 'game is not finished' do
-          expect(game.finished?).to be false
-        end
-
-        it 'assigns user to game' do
-          expect(game.user).to eq(user)
-        end
-
-        it 'respond with good status' do
-          expect(response.status).to eq(200)
-        end
-
-        it 'renders show' do
-          expect(response).to render_template('show')
-        end
+      it 'returns bad response' do
+        expect(response.status).not_to eq(200)
       end
 
-      context 'another user\'s game' do
-        let!(:game_w_questions) { FactoryBot.create(:game_with_questions) }
-        before { get :show, params: { id: game_w_questions.id } }
+      it 'redirects to registration' do
+        expect(response).to redirect_to(new_user_session_path)
+      end
 
-        it 'returns bad response' do
-          expect(response.status).not_to eq(200)
-        end
-
-        it 'redirects to home page' do
-          expect(response).to redirect_to(root_path)
-        end
-
-        it 'renders flash message' do
-          expect(flash[:alert]).to be
-        end
+      it 'renders flash alert message' do
+        expect(flash[:alert]).to be
       end
     end
 
-    describe '#answer' do
-      context 'correct' do
+    context 'when signed_in' do
+      before { sign_in user }
+
+      context 'and answer is correct' do
         before { put :answer, params: { id: game_w_questions.id, letter: game_w_questions.current_game_question.correct_answer_key } }
 
         it 'game is not finished' do
@@ -200,7 +174,7 @@ RSpec.describe GamesController, type: :controller do
         end
       end
 
-      context 'wrong' do
+      context 'and answer is wrong' do
         before { put :answer, params: { id: game_w_questions.id,
                                         letter: %w[a b c d].grep_v(game_w_questions.current_game_question.correct_answer_key).sample } }
 
@@ -221,32 +195,27 @@ RSpec.describe GamesController, type: :controller do
         end
       end
     end
+  end
 
-    describe '#help' do
-      before { put :help, params: { id: game_w_questions.id, help_type: :audience_help } }
+  describe '#take_money' do
+    context 'when anon' do
+      before { put :take_money, params: { id: game_w_questions.id } }
 
-      it 'does not finished game' do
-        expect(game.finished?).to be_falsey
+      it 'returns bad response' do
+        expect(response.status).not_to eq(200)
       end
 
-      it 'added flag "used" to used hint' do
-        expect(game.audience_help_used).to be_truthy
+      it 'redirects to registration' do
+        expect(response).to redirect_to(new_user_session_path)
       end
 
-      it 'shown audience help hash' do
-        expect(game.current_game_question.help_hash[:audience_help]).to be
-      end
-
-      it 'contains correct keys' do
-        expect(game.current_game_question.help_hash[:audience_help].keys).to contain_exactly('a', 'b', 'c', 'd')
-      end
-
-      it 'redirects to game path' do
-        expect(response).to redirect_to(game_path(game))
+      it 'renders flash alert message' do
+        expect(flash[:alert]).to be
       end
     end
 
-    describe '#take_money' do
+    context 'when signed_in' do
+      before { sign_in user }
       let!(:level) { Question::QUESTION_LEVELS.first(3).last }
       let!(:game_w_questions) { FactoryBot.create(:game_with_questions, current_level: level, user: user) }
       before { put :take_money, params: { id: game_w_questions.id } }
@@ -270,6 +239,49 @@ RSpec.describe GamesController, type: :controller do
 
       it 'renders flash message' do
         expect(flash[:success]).to be
+      end
+    end
+  end
+
+  describe '#help' do
+    context 'when anon' do
+      before { put :help, params: { id: game_w_questions.id, help_type: :fifty_fifty } }
+
+      it 'returns bad response' do
+        expect(response.status).not_to eq(200)
+      end
+
+      it 'redirects to registration' do
+        expect(response).to redirect_to(new_user_session_path)
+      end
+
+      it 'renders flash alert message' do
+        expect(flash[:alert]).to be
+      end
+    end
+
+    context 'when signed_in' do
+      before { sign_in user }
+      before { put :help, params: { id: game_w_questions.id, help_type: :audience_help } }
+
+      it 'does not finished game' do
+        expect(game.finished?).to be_falsey
+      end
+
+      it 'added flag "used" to used hint' do
+        expect(game.audience_help_used).to be_truthy
+      end
+
+      it 'shown audience help hash' do
+        expect(game.current_game_question.help_hash[:audience_help]).to be
+      end
+
+      it 'contains correct keys' do
+        expect(game.current_game_question.help_hash[:audience_help].keys).to contain_exactly('a', 'b', 'c', 'd')
+      end
+
+      it 'redirects to game path' do
+        expect(response).to redirect_to(game_path(game))
       end
     end
   end
