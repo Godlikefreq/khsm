@@ -262,26 +262,61 @@ RSpec.describe GamesController, type: :controller do
 
     context 'when signed_in' do
       before { sign_in user }
-      before { put :help, params: { id: game_w_questions.id, help_type: :audience_help } }
 
-      it 'does not finished game' do
-        expect(game.finished?).to be_falsey
+      context 'and used audience_help' do
+        before { put :help, params: { id: game_w_questions.id, help_type: :audience_help } }
+
+        it 'does not finished game' do
+          expect(game.finished?).to be_falsey
+        end
+
+        it 'added flag "used" to used hint' do
+          expect(game.audience_help_used).to be_truthy
+        end
+
+        it 'shown audience help hash' do
+          expect(game.current_game_question.help_hash[:audience_help]).to be
+        end
+
+        it 'contains correct keys' do
+          expect(game.current_game_question.help_hash[:audience_help].keys).to contain_exactly('a', 'b', 'c', 'd')
+        end
+
+        it 'redirects to game path' do
+          expect(response).to redirect_to(game_path(game))
+        end
       end
 
-      it 'added flag "used" to used hint' do
-        expect(game.audience_help_used).to be_truthy
-      end
+      context 'and used fifty_fifty' do
+        before { put :help, params: { id: game_w_questions.id, help_type: :fifty_fifty } }
 
-      it 'shown audience help hash' do
-        expect(game.current_game_question.help_hash[:audience_help]).to be
-      end
+        it 'does not finished game' do
+          expect(game.finished?).to be_falsey
+        end
 
-      it 'contains correct keys' do
-        expect(game.current_game_question.help_hash[:audience_help].keys).to contain_exactly('a', 'b', 'c', 'd')
-      end
+        it 'added flag "used" to used hint' do
+          expect(game.fifty_fifty_used).to be_truthy
+        end
 
-      it 'redirects to game path' do
-        expect(response).to redirect_to(game_path(game))
+        it 'shown audience help hash' do
+          expect(game.current_game_question.help_hash[:fifty_fifty]).to be
+        end
+
+        it 'contains answer key' do
+          expect(game.current_game_question.help_hash[:fifty_fifty]).to include(game_w_questions.current_game_question.correct_answer_key)
+        end
+
+        it 'has a size 2' do
+          expect(game.current_game_question.help_hash[:fifty_fifty].size).to eq 2
+        end
+
+        it 'is an array' do
+          expect(game.current_game_question.help_hash[:fifty_fifty]).to be_an(Array)
+        end
+
+        it 'redirects to game path' do
+          expect(response).to redirect_to(game_path(game))
+        end
       end
     end
   end

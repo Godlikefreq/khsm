@@ -72,7 +72,7 @@ RSpec.describe GameQuestion, type: :model do
       expect(game_question.help_hash).to include(:friend_call)
     end
 
-    it 'contains one key' do
+    it 'contains answer key' do
       expect(fc).to include('A').or(include('B')).or(include('C')).or(include('D'))
     end
 
