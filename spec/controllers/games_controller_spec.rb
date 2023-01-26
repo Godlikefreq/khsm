@@ -221,7 +221,7 @@ RSpec.describe GamesController, type: :controller do
       before { put :take_money, params: { id: game_w_questions.id } }
 
       it 'finished game' do
-        expect(game.finished?).to be_truthy
+        expect(game.finished?).to be true
       end
 
       it 'assigns current prize' do
@@ -267,11 +267,11 @@ RSpec.describe GamesController, type: :controller do
         before { put :help, params: { id: game_w_questions.id, help_type: :audience_help } }
 
         it 'does not finished game' do
-          expect(game.finished?).to be_falsey
+          expect(game.finished?).to be false
         end
 
         it 'added flag "used" to used hint' do
-          expect(game.audience_help_used).to be_truthy
+          expect(game.audience_help_used).to be true
         end
 
         it 'shown audience help hash' do
@@ -291,11 +291,11 @@ RSpec.describe GamesController, type: :controller do
         before { put :help, params: { id: game_w_questions.id, help_type: :fifty_fifty } }
 
         it 'does not finished game' do
-          expect(game.finished?).to be_falsey
+          expect(game.finished?).to be false
         end
 
         it 'added flag "used" to used hint' do
-          expect(game.fifty_fifty_used).to be_truthy
+          expect(game.fifty_fifty_used).to be true
         end
 
         it 'shown audience help hash' do
