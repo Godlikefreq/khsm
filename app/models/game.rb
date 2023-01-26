@@ -122,19 +122,6 @@ class Game < ActiveRecord::Base
     finish_game!((previous_level > -1) ? PRIZES[previous_level] : 0, false)
   end
 
-
-  # todo: дорогой ученик!
-  # Код метода ниже можно сократиь в 3 раза с помощью возможностей Ruby и Rails,
-  # подумайте как и реализуйте. Помните о безопасности и входных данных!
-  #
-  # Вариант решения вы найдете в комментарии в конце файла, отвечающего за настройки
-  # хранения сессий вашего приложения. Вот такой вот вам ребус :)
-
-  # Создает варианты подсказок для текущего игрового вопроса.
-  # Возвращает true, если подсказка применилась успешно,
-  # false если подсказка уже заюзана.
-  #
-  # help_type = :fifty_fifty | :audience_help | :friend_call
   def use_help(help_type)
     help_types = %i(fifty_fifty audience_help friend_call)
     help_type = help_type.to_sym
