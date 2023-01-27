@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe 'users/show', type: :view do
   let!(:user) { create(:user, name: 'Гарри') }
 
-  context 'user view\'s his own profile' do
+  context "user view's his own profile" do
     before do
       sign_in user
       assign(:games, [stub_template('users/_game.html.erb' => 'User game goes here')])
@@ -25,7 +25,7 @@ RSpec.describe 'users/show', type: :view do
     end
   end
 
-  context 'user views other user\'s profile' do
+  context "user views other user's profile" do
     before do
       assign(:user, user)
 
